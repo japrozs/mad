@@ -1,109 +1,134 @@
-// main.dart - STARTER CODE
-// GitHub Collaborative Activity: Flutter Team Challenge
-// Replace your entire lib/main.dart file with this code
-
+// lib/main.dart
 import 'package:flutter/material.dart';
 
-// The main entry point of the app
 void main() {
-  runApp(MyApp());
+  runApp(TeamApp());
 }
 
-class MyApp extends StatelessWidget {
+class TeamApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // TIP: The MaterialApp wraps your whole app and sets theme + navigation.
-      // Only edit text/colors below unless instructed otherwise.
-      // TASK 1: Change the title of the app
-      // 👉 Replace the string below with your own app title (example: 'Flutter Team Challenge').
-      title: 'Flutter Team Challenge',
+      title: 'Flutter Team App',
       theme: ThemeData(
-        // TASK 2: Change the primary swatch color
-        // 👉 Pick one Material color from Colors (example: Colors.red, Colors.green, Colors.purple).
-        primarySwatch: Colors.red,
+        primarySwatch: Colors.blue,
       ),
       home: HomePage(),
     );
   }
 }
 
-class HomePage extends StatelessWidget {
+/// HomePage: Starter for customization tasks
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  // Task 2: Counter placeholder
+  int _counter = 0;
+
+  // Task 3: Text Input Controller placeholder
+  final TextEditingController _textController = TextEditingController();
+
+  // Task 4: Theme switching placeholder
+  bool _isDarkTheme = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // TIP: Scaffold gives you a page layout with appBar + body.
       appBar: AppBar(
-        // TASK 3: Change the text in the top bar
-        // 👉 Replace the AppBar title text with your team name or app name.
-        title: Text('Welcome to Team Triple Guy'),
+        title: Text('Starter App - Customize Me'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            // TIP: Widgets appear in order from top to bottom.
-            // If something doesn't show, make sure commas and parentheses match.
-            // TASK 4: Change the main text below
-            // 👉 Update this main headline to describe your app.
-            Text(
-              'This App will display our team\' Flutter skills!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20), // Adds space between widgets
-            // TASK 5: Change the subtitle text
-            // 👉 Update this smaller subtitle with a brief description.
-            Text(
-              'There are 3 members in our team working together.',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              // TIP: onPressed runs when the button is tapped.
-              onPressed: () {
-                print('Button Clicked!');
-              },
-              // TASK 6: Change the text on the button
-              // 👉 Replace the button text with an action label (example: 'Show Info').
-              child: Text('Click Me!'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Task 1: Profile Card
+              Card(
+                elevation: 4,
+                margin: EdgeInsets.symmetric(vertical: 8),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      Icon(Icons.person, size: 50, color: Colors.blue),
+                      SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Student Name',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold)),
+                          Text('Major: Computer Science',
+                              style: TextStyle(color: Colors.grey)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-            // TASK 7: Add a new Text widget below (after this comment)
-            // 👉 Add a new Text widget here. Example:
-            // Text('Created by: [Your Name]')
-            // Tip: Use a smaller font or italic style for a signature line.
-            // Example with styling:
-            // Text(
-            //   'Created by: [Your Name]",
-            //   style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: Colors.grey),
-            // ),
-            SizedBox(height: 20),
-            Text(
-              'Created by: Alex, JP, and Hien',
-              style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: Colors.grey),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
-// TASK 8: Modify the ElevatedButton above to add custom styling
-// Add this inside the ElevatedButton (after child parameter):
-// style: ElevatedButton.styleFrom(
-//   backgroundColor: Colors.green,
-// ),
-// 👉 Example full snippet:
-// ElevatedButton(
-//   onPressed: () {},
-//   child: Text('Click Me'),
-//   style: ElevatedButton.styleFrom(
-//     backgroundColor: Colors.green,
-//     foregroundColor: Colors.white,
-//   ),
-// ),
-// TIP: Keep the button inside the Column so it shows in the center.
+              SizedBox(height: 16),
+
+              // Task 2: Counter Widget
+              Text('Counter: $_counter', style: TextStyle(fontSize: 24)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => setState(() => _counter--),
+                    child: Icon(Icons.remove),
+                  ),
+                  SizedBox(width: 20),
+                  ElevatedButton(
+                    onPressed: () => setState(() => _counter++),
+                    child: Icon(Icons.add),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 16),
+
+              // Task 3: Text Input
+              TextField(
+                controller: _textController,
+                decoration: InputDecoration(
+                  labelText: 'Enter some text',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              SizedBox(height: 8),
+              Text('You typed: ${_textController.text}'),
+
+              SizedBox(height: 16),
+
+              // Task 4: Theme Toggle
+              Row(
+                children: [
+                  Text('Dark Theme'),
+                  Switch(
+                    value: _isDarkTheme,
+                    onChanged: (value) {
+                      setState(() {
+                        _isDarkTheme = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 16),
+
+              // Task 5: Placeholder for Motivational Quotes
+              Container(
+                height: 50,
+                color: Colors.grey[200],
+                child: Center(child: Text('Motivational Quote Placeholder')),
+              ),
+
+              SizedBox(height: 16),
+
+              // Task 6: Placeholder for Icon Gallery
