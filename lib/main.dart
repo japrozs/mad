@@ -1,161 +1,185 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const RunMyApp());
 }
 
-class MyApp extends StatelessWidget {
+class RunMyApp extends StatefulWidget {
+  const RunMyApp({super.key});
+
+  @override
+  State<RunMyApp> createState() => _RunMyAppState();
+}
+
+class _RunMyAppState extends State<RunMyApp> {
+  ThemeMode _themeMode = ThemeMode.light;
+
+  void _toggleTheme(bool isDark) {
+    setState(() {
+      _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tabs Demo',
-      home: DefaultTabController(length: 4, child: TabsDemo()),
+      debugShowCheckedModeBanner: false,
+      title: 'Theme Demo',
+
+      // LIGHT THEME
+      theme: ThemeData(
+        brightness: Brightness.light,
+        primarySwatch: Colors.blueGrey,
+        scaffoldBackgroundColor: Colors.grey[100],
+
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(fontSize: 18),
+          bodySmall: TextStyle(fontSize: 15),
+        ),
+      ),
+
+      // DARK THEME
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        primarySwatch: Colors.blueGrey,
+
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(fontSize: 18),
+          bodySmall: TextStyle(fontSize: 15),
+        ),
+      ),
+
+      themeMode: _themeMode,
+
+      home: ThemeHomeScreen(themeMode: _themeMode, onToggleTheme: _toggleTheme),
     );
   }
 }
 
-class TabsDemo extends StatelessWidget {
+class ThemeHomeScreen extends StatelessWidget {
+  final ThemeMode themeMode;
+  final Function(bool) onToggleTheme;
+
+  const ThemeHomeScreen({
+    super.key,
+    required this.themeMode,
+    required this.onToggleTheme,
+  });
+
   @override
   Widget build(BuildContext context) {
+    final bool isDark = themeMode == ThemeMode.dark;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Tabs Demo'),
-        bottom: TabBar(
-          tabs: [
-            Tab(text: 'Tab 1'),
-            Tab(text: 'Tab 2'),
-            Tab(text: 'Tab 3'),
-            Tab(text: 'Tab 4'),
-          ],
-        ),
-      ),
-
-      // Bottom App Bar
-      bottomNavigationBar: BottomAppBar(
-        child: Padding(
-          padding: EdgeInsets.all(12),
-          child: Text('Bottom App Bar', textAlign: TextAlign.center),
-        ),
-      ),
-
-      body: TabBarView(
-        children: [
-          // TAB 1: Text + Alert Dialog
-          Container(
-            color: Colors.lightBlue[50],
-            child: Center(
+      appBar: AppBar(title: const Text('Theme Demo')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 500),
+              width: 300,
+              height: 180,
+              margin: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white : Colors.grey,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              alignment: Alignment.center,
+              padding: const EdgeInsets.all(20),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Tab 1: Text Widget',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    '📱 Mobile App Development Testing',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: Text('Hello!'),
-                            content: Text('This is an Alert Dialog.'),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: Text('Close'),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                    child: Text('Show Alert'),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Demonstrating theme switching with smooth animations',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: Colors.black),
                   ),
                 ],
               ),
             ),
-          ),
 
-          // TAB 2: Image + Text Inputs
-          Container(
-            color: Colors.green[50],
-            child: Center(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.network(
-                      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeLsMIyoS5GKd4VwGZGcljgow8vEmAYEACGg&s',
-                      width: 250,
-                      height: 250,
-                    ),
-                    SizedBox(height: 20),
-                    TextField(
-                      decoration: InputDecoration(
-                        labelText: 'Enter your name',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    SizedBox(height: 12),
-                    TextField(
-                      decoration: InputDecoration(
-                        labelText: 'Enter a message',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            const SizedBox(height: 10),
+
+            Text(
+              'Choose the Theme:',
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
-          ),
 
-          // TAB 3: Button + SnackBar
-          Container(
-            color: Colors.orange[50],
-            child: Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Button pressed in Tab 3!')),
-                  );
-                },
-                child: Text('Click me'),
-              ),
-            ),
-          ),
+            const SizedBox(height: 12),
 
-          // TAB 4: ListView + Cards
-          Container(
-            color: Colors.purple[50],
-            child: ListView(
-              padding: EdgeInsets.all(16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Card(
-                  child: ListTile(
-                    title: Text('Item 1'),
-                    subtitle: Text('This is inside a Card'),
+                AnimatedOpacity(
+                  duration: const Duration(milliseconds: 300),
+                  opacity: isDark ? 0.3 : 1.0,
+                  child: AnimatedScale(
+                    duration: const Duration(milliseconds: 300),
+                    scale: isDark ? 1.0 : 1.25,
+                    child: Icon(
+                      Icons.wb_sunny,
+                      size: 28,
+                      color: isDark ? Colors.grey : Colors.orange,
+                    ),
                   ),
                 ),
-                Card(
-                  child: ListTile(
-                    title: Text('Item 2'),
-                    subtitle: Text('This is inside a Card'),
-                  ),
+
+                const SizedBox(width: 12),
+
+                Switch(
+                  value: isDark,
+                  onChanged: (value) => onToggleTheme(value),
                 ),
-                Card(
-                  child: ListTile(
-                    title: Text('Item 3'),
-                    subtitle: Text('This is inside a Card'),
+
+                const SizedBox(width: 12),
+
+                AnimatedOpacity(
+                  duration: const Duration(milliseconds: 300),
+                  opacity: isDark ? 1.0 : 0.3,
+                  child: AnimatedScale(
+                    duration: const Duration(milliseconds: 300),
+                    scale: isDark ? 1.25 : 1.0,
+                    child: Icon(
+                      Icons.nightlight_round,
+                      size: 28,
+                      color: isDark ? Colors.yellow : Colors.grey,
+                    ),
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+            const SizedBox(height: 20),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () => onToggleTheme(false),
+                  child: const Text('Light Mode'),
+                ),
+
+                const SizedBox(width: 15),
+
+                ElevatedButton(
+                  onPressed: () => onToggleTheme(true),
+                  child: const Text('Dark Mode'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
