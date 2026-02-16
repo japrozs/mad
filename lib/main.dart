@@ -1,183 +1,175 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const RunMyApp());
-}
+void main() => runApp(const MyApp());
 
-class RunMyApp extends StatefulWidget {
-  const RunMyApp({super.key});
-
-  @override
-  State<RunMyApp> createState() => _RunMyAppState();
-}
-
-class _RunMyAppState extends State<RunMyApp> {
-  ThemeMode _themeMode = ThemeMode.light;
-
-  void _toggleTheme(bool isDark) {
-    setState(() {
-      _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
-    });
-  }
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'Stateful Lab',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const CounterWidget(),
       debugShowCheckedModeBanner: false,
-      title: 'Theme Demo',
-
-      // LIGHT THEME
-      theme: ThemeData(
-        brightness: Brightness.light,
-        primarySwatch: Colors.blueGrey,
-        scaffoldBackgroundColor: Colors.grey[100],
-
-        textTheme: const TextTheme(
-          bodyLarge: TextStyle(fontSize: 18),
-          bodySmall: TextStyle(fontSize: 15),
-        ),
-      ),
-
-      // DARK THEME
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        primarySwatch: Colors.blueGrey,
-
-        textTheme: const TextTheme(
-          bodyLarge: TextStyle(fontSize: 18),
-          bodySmall: TextStyle(fontSize: 15),
-        ),
-      ),
-
-      themeMode: _themeMode,
-
-      home: ThemeHomeScreen(themeMode: _themeMode, onToggleTheme: _toggleTheme),
     );
   }
 }
 
-class ThemeHomeScreen extends StatelessWidget {
-  final ThemeMode themeMode;
-  final Function(bool) onToggleTheme;
+class CounterWidget extends StatefulWidget {
+  const CounterWidget({super.key});
 
-  const ThemeHomeScreen({
-    super.key,
-    required this.themeMode,
-    required this.onToggleTheme,
-  });
+  @override
+  State<CounterWidget> createState() => _CounterWidgetState();
+}
+
+class _CounterWidgetState extends State<CounterWidget> {
+  int _counter = 0;
+
+  final TextEditingController _controller = TextEditingController();
+
+  final List<int> _history = [];
+
+  void _saveHistory() {
+    _history.add(_counter);
+  }
+
+  void _increment() {
+    _saveHistory();
+    setState(() {
+      if (_counter < 100) _counter++;
+    });
+  }
+
+  void _decrement() {
+    if (_counter == 0) return;
+    _saveHistory();
+    setState(() {
+      _counter--;
+    });
+  }
+
+  void _reset() {
+    _saveHistory();
+    setState(() {
+      _counter = 0;
+    });
+  }
+
+  void _undo() {
+    if (_history.isEmpty) return;
+    setState(() {
+      _counter = _history.removeLast();
+    });
+  }
+
+  void _setValueFromInput() {
+    final String text = _controller.text.trim();
+    final int? value = int.tryParse(text);
+
+    if (value == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid number.')),
+      );
+      return;
+    }
+
+    if (value > 100) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Limit Reached!')));
+      return;
+    }
+
+    if (value < 0) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Value cannot be below 0.')));
+      return;
+    }
+
+    _saveHistory();
+    setState(() {
+      _counter = value;
+    });
+  }
+
+  Color _counterColor() {
+    if (_counter == 0) return Colors.red;
+    if (_counter > 50) return Colors.green;
+    return Colors.black;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final bool isDark = themeMode == ThemeMode.dark;
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Theme Demo')),
-      body: Center(
+      appBar: AppBar(title: const Text('Interactive Counter')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              width: 300,
-              height: 180,
-              margin: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: isDark ? Colors.white : Colors.grey,
-                borderRadius: BorderRadius.circular(20),
+            Center(
+              child: Container(
+                color: Colors.blue.shade100,
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  '$_counter',
+                  style: TextStyle(fontSize: 50.0, color: _counterColor()),
+                ),
               ),
-              alignment: Alignment.center,
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '📱 Mobile App Development Testing',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.black,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Demonstrating theme switching with smooth animations',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: Colors.black),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            Text(
-              'Choose the Theme:',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-
-            const SizedBox(height: 12),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AnimatedOpacity(
-                  duration: const Duration(milliseconds: 300),
-                  opacity: isDark ? 0.3 : 1.0,
-                  child: AnimatedScale(
-                    duration: const Duration(milliseconds: 300),
-                    scale: isDark ? 1.0 : 1.25,
-                    child: Icon(
-                      Icons.wb_sunny,
-                      size: 28,
-                      color: isDark ? Colors.grey : Colors.orange,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-
-                Switch(
-                  value: isDark,
-                  onChanged: (value) => onToggleTheme(value),
-                ),
-
-                const SizedBox(width: 12),
-
-                AnimatedOpacity(
-                  duration: const Duration(milliseconds: 300),
-                  opacity: isDark ? 1.0 : 0.3,
-                  child: AnimatedScale(
-                    duration: const Duration(milliseconds: 300),
-                    scale: isDark ? 1.25 : 1.0,
-                    child: Icon(
-                      Icons.nightlight_round,
-                      size: 28,
-                      color: isDark ? Colors.yellow : Colors.grey,
-                    ),
-                  ),
-                ),
-              ],
             ),
             const SizedBox(height: 20),
+            Slider(
+              min: 0,
+              max: 100,
+              value: _counter.toDouble(),
+              onChanged: (double value) {
+                _saveHistory();
+                setState(() {
+                  _counter = value.toInt();
+                });
+              },
+            ),
+
+            const SizedBox(height: 16),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton(
-                  onPressed: () => onToggleTheme(false),
-                  child: const Text('Light Mode'),
-                ),
-
-                const SizedBox(width: 15),
-
-                ElevatedButton(
-                  onPressed: () => onToggleTheme(true),
-                  child: const Text('Dark Mode'),
-                ),
+                ElevatedButton(onPressed: _decrement, child: const Text('-1')),
+                const SizedBox(width: 12),
+                ElevatedButton(onPressed: _increment, child: const Text('+1')),
+                const SizedBox(width: 12),
+                ElevatedButton(onPressed: _reset, child: const Text('Reset')),
               ],
             ),
+
+            const SizedBox(height: 24),
+
+            TextField(
+              controller: _controller,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Enter a number (0 - 100)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: _setValueFromInput,
+              child: const Text('Set Value'),
+            ),
+
+            const SizedBox(height: 16),
+
+            ElevatedButton(onPressed: _undo, child: const Text('Undo')),
           ],
         ),
       ),
