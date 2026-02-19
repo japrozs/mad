@@ -1,5 +1,6 @@
 # act00
 
+![commit history](assets/commits.png)
 A new Flutter project.
 
 ## Getting Started
