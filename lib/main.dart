@@ -1,319 +1,176 @@
-// lib/main.dart
-// In-Class Activity #5: Digital Pet App
-// Name: Japroz Singh (jsaini, #002753343)
+/*
+  Author: Japroz Singh Saini
+*/
 
-import 'dart:async';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(MaterialApp(debugShowCheckedModeBanner: false, home: DigitalPetApp()));
-}
+void main() => runApp(const MyApp());
 
-class DigitalPetApp extends StatefulWidget {
-  @override
-  _DigitalPetAppState createState() => _DigitalPetAppState();
-}
-
-class _DigitalPetAppState extends State<DigitalPetApp> {
-  String petName = "Your Pet";
-  int happinessLevel = 50;
-  int hungerLevel = 50;
-
-  TextEditingController nameController = TextEditingController();
-
-  // auto hunger timer
-  Timer? hungerTimer;
-  // win timer tracking
-  Timer? winCheckTimer;
-  int happySeconds = 0;
-
-  @override
-  void initState() {
-    super.initState();
-
-    // auto increase hunger
-    hungerTimer = Timer.periodic(Duration(seconds: 30), (timer) {
-      setState(() {
-        hungerLevel += 5;
-
-        if (hungerLevel > 100) hungerLevel = 100;
-
-        // if super hungry, decrement happiness
-        if (hungerLevel == 100) {
-          happinessLevel -= 10;
-          if (happinessLevel < 0) happinessLevel = 0;
-        }
-      });
-
-      _checkWinLoss();
-    });
-
-    // check win condition every 1 second
-    winCheckTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-      if (happinessLevel > 80) {
-        happySeconds++;
-      } else {
-        happySeconds = 0;
-      }
-
-      // 3 minutes = 180 seconds
-      if (happySeconds >= 180) {
-        _showWinDialog();
-        happySeconds = 0;
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    hungerTimer?.cancel();
-    winCheckTimer?.cancel();
-    nameController.dispose();
-    super.dispose();
-  }
-
-  // color change
-  Color _moodColor(int happiness) {
-    if (happiness > 70) {
-      return Colors.green;
-    } else if (happiness >= 30) {
-      return Colors.yellow;
-    } else {
-      return Colors.red;
-    }
-  }
-
-  String _moodText(int happiness) {
-    if (happiness > 70) return "Happy 😄";
-    if (happiness >= 30) return "Neutral 😐";
-    return "Unhappy 😢";
-  }
-
-  void _playWithPet() {
-    setState(() {
-      happinessLevel += 10;
-      if (happinessLevel > 100) happinessLevel = 100;
-
-      _updateHunger();
-    });
-
-    _checkWinLoss();
-  }
-
-  void _feedPet() {
-    setState(() {
-      hungerLevel -= 10;
-      if (hungerLevel < 0) hungerLevel = 0;
-
-      _updateHappiness();
-    });
-
-    _checkWinLoss();
-  }
-
-  void _updateHappiness() {
-    if (hungerLevel < 30) {
-      happinessLevel -= 20;
-    } else {
-      happinessLevel += 10;
-    }
-
-    if (happinessLevel > 100) happinessLevel = 100;
-    if (happinessLevel < 0) happinessLevel = 0;
-  }
-
-  void _updateHunger() {
-    setState(() {
-      hungerLevel += 5;
-      if (hungerLevel > 100) {
-        hungerLevel = 100;
-        happinessLevel -= 20;
-        if (happinessLevel < 0) happinessLevel = 0;
-      }
-    });
-  }
-
-  void _setName() {
-    setState(() {
-      if (nameController.text.trim().isNotEmpty) {
-        petName = nameController.text.trim();
-      }
-    });
-  }
-
-  void _checkWinLoss() {
-    if (hungerLevel >= 100 && happinessLevel <= 10) {
-      _showGameOverDialog();
-    }
-  }
-
-  void _showGameOverDialog() {
-    hungerTimer?.cancel();
-    winCheckTimer?.cancel();
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Game Over"),
-          content: Text(
-            "Your pet is too hungry and unhappy! 😭\n\n"
-            "Hunger: $hungerLevel\nHappiness: $happinessLevel",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text("OK"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showWinDialog() {
-    hungerTimer?.cancel();
-    winCheckTimer?.cancel();
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("You Win! 🎉"),
-          content: Text(
-            "You kept happiness above 80 for 3 minutes!\n\n"
-            "Great job taking care of $petName!",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text("OK"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  int energyLevel = 100;
-
-  void _useEnergy(int amount) {
-    setState(() {
-      energyLevel -= amount;
-      if (energyLevel < 0) energyLevel = 0;
-    });
-  }
-
-  void _gainEnergy(int amount) {
-    setState(() {
-      energyLevel += amount;
-      if (energyLevel > 100) energyLevel = 100;
-    });
-  }
-
-  void _playWithEnergy() {
-    _useEnergy(10);
-    _playWithPet();
-  }
-
-  void _feedWithEnergy() {
-    _gainEnergy(5);
-    _feedPet();
-  }
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Rocket Launch Controller',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const LaunchController(),
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
+class LaunchController extends StatefulWidget {
+  const LaunchController({super.key});
+
+  @override
+  State<LaunchController> createState() => _LaunchControllerState();
+}
+
+class _LaunchControllerState extends State<LaunchController> {
+  int _counter = 0;
+  bool _didShowLiftoffPopupForThisReach = false;
+
+  int _clampCounter(int value) {
+    if (value < 0) return 0;
+    if (value > 100) return 100;
+    return value;
+  }
+
+  Color _statusColorFor(int value) {
+    if (value == 0) return Colors.red;
+    if (value <= 50) return Colors.orange;
+    return Colors.green;
+  }
+
+  Future<void> _showLiftoffDialog() async {
+    if (!mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('🚀 Launch Successful!'),
+        content: const Text('LIFTOFF! The rocket has reached full fuel (100).'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _setCounter(int newValue) {
+    final int clamped = _clampCounter(newValue);
+    if (clamped != 100 && _didShowLiftoffPopupForThisReach) {
+      _didShowLiftoffPopupForThisReach = false;
+    }
+
+    setState(() {
+      _counter = clamped;
+    });
+
+    if (_counter == 100 && !_didShowLiftoffPopupForThisReach) {
+      _didShowLiftoffPopupForThisReach = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showLiftoffDialog();
+      });
+    }
+  }
+
+  void _ignite() => _setCounter(_counter + 1);
+
+  void _decrement() => _setCounter(_counter - 1);
+
+  void _reset() => _setCounter(0);
+
+  @override
+  Widget build(BuildContext context) {
+    final Color statusColor = _statusColorFor(_counter);
+
     return Scaffold(
-      appBar: AppBar(title: Text('Digital Pet')),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    labelText: "Enter Pet Name",
-                    border: OutlineInputBorder(),
+      appBar: AppBar(title: const Text('Rocket Launch Controller')),
+      body: Padding(
+        padding: const EdgeInsets.all(18.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Display panel
+            Center(
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 28),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.blue.shade200),
+                ),
+                child: Center(
+                  child: Text(
+                    _counter == 100 ? 'LIFTOFF!' : '$_counter',
+                    style: TextStyle(
+                      fontSize: _counter == 100 ? 44 : 56,
+                      fontWeight: FontWeight.w800,
+                      color: statusColor,
+                      letterSpacing: 1.2,
+                    ),
                   ),
                 ),
               ),
-              SizedBox(height: 10),
-              ElevatedButton(onPressed: _setName, child: Text("Set Name")),
+            ),
 
-              SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-              ColorFiltered(
-                colorFilter: ColorFilter.mode(
-                  _moodColor(happinessLevel),
-                  BlendMode.modulate,
+            Slider(
+              min: 0,
+              max: 100,
+              divisions: 100,
+              value: _counter.toDouble(),
+              onChanged: (double value) {
+                _setCounter(value.toInt());
+              },
+              activeColor: Colors.blue,
+              inactiveColor: Colors.red,
+            ),
+
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: _decrement,
+                  child: const Text('Decrement'),
                 ),
-                child: Image.asset('assets/pet_image.png', height: 200),
-              ),
-
-              SizedBox(height: 10),
-
-              Text(
-                "Mood: ${_moodText(happinessLevel)}",
-                style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
-              ),
-
-              SizedBox(height: 16.0),
-              Text('Name: $petName', style: TextStyle(fontSize: 20.0)),
-              SizedBox(height: 16.0),
-              Text(
-                'Happiness Level: $happinessLevel',
-                style: TextStyle(fontSize: 20.0),
-              ),
-              SizedBox(height: 16.0),
-              Text(
-                'Hunger Level: $hungerLevel',
-                style: TextStyle(fontSize: 20.0),
-              ),
-
-              SizedBox(height: 20),
-
-              Text(
-                'Energy Level: $energyLevel',
-                style: TextStyle(fontSize: 20.0),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                child: LinearProgressIndicator(
-                  value: energyLevel / 100,
-                  minHeight: 12,
+                ElevatedButton(onPressed: _ignite, child: const Text('Ignite')),
+                ElevatedButton(
+                  onPressed: _reset,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey.shade700,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Reset'),
                 ),
-              ),
+              ],
+            ),
 
-              SizedBox(height: 32.0),
+            const SizedBox(height: 18),
 
-              ElevatedButton(
-                onPressed: _playWithEnergy,
-                child: Text('Play with Your Pet'),
+            Text(
+              'Status: ${_counter == 0
+                  ? "RED (0)"
+                  : _counter <= 50
+                  ? "ORANGE (1–50)"
+                  : _counter < 100
+                  ? "GREEN (51–99)"
+                  : "LIFTOFF (100)"}',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade700,
+                fontWeight: FontWeight.w600,
               ),
-              SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: _feedWithEnergy,
-                child: Text('Feed Your Pet'),
-              ),
-
-              SizedBox(height: 16),
-
-              Text(
-                "Win: Happiness > 80 for 3 minutes\nLoss: Hunger = 100 and Happiness <= 10",
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 20),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
