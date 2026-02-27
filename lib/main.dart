@@ -1,178 +1,259 @@
-/*
-  Author: Japroz Singh Saini
-*/
-
 import 'package:flutter/material.dart';
 
-void main() => runApp(const MyApp());
+void main() => runApp(const CalculatorApp());
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Rocket Launch Controller',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const LaunchController(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
-class LaunchController extends StatefulWidget {
-  const LaunchController({super.key});
+class CalculatorApp extends StatefulWidget {
+  const CalculatorApp({super.key});
 
   @override
-  State<LaunchController> createState() => _LaunchControllerState();
+  State<CalculatorApp> createState() => _CalculatorAppState();
 }
 
-class _LaunchControllerState extends State<LaunchController> {
-  int _counter = 0;
-  bool _didShowLiftoffPopupForThisReach = false;
+class _CalculatorAppState extends State<CalculatorApp> {
+  // theme toggle feature
+  bool _isDark = true;
 
-  int _clampCounter(int value) {
-    if (value < 0) return 0;
-    if (value > 100) return 100;
-    return value;
+  // state mgmt
+  String _display = '0';
+  int? _first;
+  String? _operator;
+  bool _justEvaluated = false;
+  bool _isError = false;
+
+  void _clearAll() {
+    setState(() {
+      _display = '0';
+      _first = null;
+      _operator = null;
+      _justEvaluated = false;
+      _isError = false;
+    });
   }
 
-  Color _statusColorFor(int value) {
-    if (value == 0) return Colors.red;
-    if (value <= 50) return Colors.orange;
-    return Colors.green;
+  void _clearEntry() {
+    setState(() {
+      _display = '0';
+      _isError = false;
+    });
   }
 
-  Future<void> _showLiftoffDialog() async {
-    if (!mounted) return;
+  bool get _shouldShowAC =>
+      _display == '0' && _first == null && _operator == null;
 
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('🚀 Launch Successful!'),
-        content: const Text('LIFTOFF! The rocket has reached full fuel (100).'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+  // err hanfling
+  void _setError(String message) {
+    setState(() {
+      _display = message;
+      _isError = true;
+      _first = null;
+      _operator = null;
+      _justEvaluated = false;
+    });
   }
 
-  void _setCounter(int newValue) {
-    final int clamped = _clampCounter(newValue);
-    if (clamped != 100 && _didShowLiftoffPopupForThisReach) {
-      _didShowLiftoffPopupForThisReach = false;
+  // input logic
+  void _appendDigit(String digit) {
+    if (_isError) _clearAll();
+
+    setState(() {
+      if (_justEvaluated) {
+        _display = digit;
+        _justEvaluated = false;
+      } else if (_display == '0') {
+        _display = digit;
+      } else {
+        _display += digit;
+      }
+    });
+  }
+
+  void _setOperator(String op) {
+    if (_isError) return;
+
+    final current = int.tryParse(_display);
+    if (current == null) {
+      _setError('Error');
+      return;
     }
 
     setState(() {
-      _counter = clamped;
+      _first = current;
+      _operator = op;
+      _justEvaluated = true;
     });
+  }
 
-    if (_counter == 100 && !_didShowLiftoffPopupForThisReach) {
-      _didShowLiftoffPopupForThisReach = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _showLiftoffDialog();
-      });
+  int? _calculate(int a, int b, String op) {
+    switch (op) {
+      case '+':
+        return a + b;
+      case '-':
+        return a - b;
+      case '×':
+        return a * b;
+      case '÷':
+        if (b == 0) {
+          _setError('Cannot divide by 0');
+          return null;
+        }
+        return a ~/ b; // integer division
+      default:
+        _setError('Error');
+        return null;
     }
   }
 
-  void _ignite() => _setCounter(_counter + 1);
+  void _evaluate() {
+    if (_isError) return;
 
-  void _decrement() => _setCounter(_counter - 1);
+    if (_first == null || _operator == null) {
+      _setError('Incomplete input');
+      return;
+    }
 
-  void _reset() => _setCounter(0);
+    final second = int.tryParse(_display);
+    if (second == null) {
+      _setError('Error');
+      return;
+    }
 
+    final result = _calculate(_first!, second, _operator!);
+    if (result == null) return;
+
+    setState(() {
+      _display = result.toString();
+      _first = null;
+      _operator = null;
+      _justEvaluated = true;
+      _isError = false;
+    });
+  }
+
+  // ui
   @override
   Widget build(BuildContext context) {
-    final Color statusColor = _statusColorFor(_counter);
+    final lightTheme = ThemeData.light();
+    final darkTheme = ThemeData.dark();
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Rocket Launch Controller')),
-      body: Padding(
-        padding: const EdgeInsets.all(18.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Display panel
-            Center(
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 28),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.blue.shade200),
-                ),
-                child: Center(
-                  child: Text(
-                    _counter == 100 ? 'LIFTOFF!' : '$_counter',
-                    style: TextStyle(
-                      fontSize: _counter == 100 ? 44 : 56,
-                      fontWeight: FontWeight.w800,
-                      color: statusColor,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            Slider(
-              min: 0,
-              max: 100,
-              divisions: 100,
-              value: _counter.toDouble(),
-              onChanged: (double value) {
-                _setCounter(value.toInt());
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: _isDark ? ThemeMode.dark : ThemeMode.light,
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text("Calculator"),
+          actions: [
+            IconButton(
+              icon: Icon(_isDark ? Icons.dark_mode : Icons.light_mode),
+              onPressed: () {
+                setState(() {
+                  _isDark = !_isDark;
+                });
               },
-              activeColor: Colors.blue,
-              inactiveColor: Colors.red,
             ),
-
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: _decrement,
-                  child: const Text('Decrement'),
-                ),
-                ElevatedButton(onPressed: _ignite, child: const Text('Ignite')),
-                ElevatedButton(
-                  onPressed: _reset,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey.shade700,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('Reset'),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 18),
-
-            Text(
-              'Status: ${_counter == 0
-                  ? "RED (0)"
-                  : _counter <= 50
-                  ? "ORANGE (1–50)"
-                  : _counter < 100
-                  ? "GREEN (51–99)"
-                  : "LIFTOFF (100)"}',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade700,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            _buildDisplay(),
+            Expanded(child: _buildButtons()),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildDisplay() {
+    return Container(
+      alignment: Alignment.bottomRight,
+      padding: const EdgeInsets.all(24),
+      child: Text(
+        _display,
+        style: TextStyle(fontSize: 48, color: _isError ? Colors.red : null),
+      ),
+    );
+  }
+
+  Widget _buildButtons() {
+    final buttons = [
+      _shouldShowAC ? 'AC' : 'C',
+      '±',
+      ' ',
+      '÷',
+      '7',
+      '8',
+      '9',
+      '×',
+      '4',
+      '5',
+      '6',
+      '-',
+      '1',
+      '2',
+      '3',
+      '+',
+      '0',
+      '=',
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // total rows = 5 (top row + 3 middle rows + last row)
+        // total columns = 4
+        return GridView.count(
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(12),
+          crossAxisCount: 4,
+          mainAxisSpacing: 10,
+          crossAxisSpacing: 10,
+          childAspectRatio: 1.25,
+          children: buttons.map((label) {
+            if (label == ' ') return const SizedBox();
+
+            return ElevatedButton(
+              onPressed: () => _handleButton(label),
+              child: Text(label, style: const TextStyle(fontSize: 22)),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  void _handleButton(String label) {
+    if (RegExp(r'^\d$').hasMatch(label)) {
+      _appendDigit(label);
+      return;
+    }
+
+    switch (label) {
+      case '+':
+      case '-':
+      case '×':
+      case '÷':
+        _setOperator(label);
+        break;
+      case '=':
+        _evaluate();
+        break;
+      case 'C':
+        _clearEntry();
+        break;
+      case 'AC':
+        _clearAll();
+        break;
+      case '±':
+        if (_display != '0') {
+          setState(() {
+            if (_display.startsWith('-')) {
+              _display = _display.substring(1);
+            } else {
+              _display = '-$_display';
+            }
+          });
+        }
+        break;
+    }
   }
 }
